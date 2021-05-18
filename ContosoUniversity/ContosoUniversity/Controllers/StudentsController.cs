@@ -7,21 +7,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
     public class StudentsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly ILogger<StudentsController> _logger;
 
-        public StudentsController(SchoolContext context)
+        public StudentsController(SchoolContext context, ILogger<StudentsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: Students
         public async Task<IActionResult> Index()
         {
+            _logger.LogInformation("Loading students for index view.");
             return View(await _context.Students.ToListAsync());
         }
 
