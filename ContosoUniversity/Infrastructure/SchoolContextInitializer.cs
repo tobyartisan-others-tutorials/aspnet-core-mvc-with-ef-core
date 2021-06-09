@@ -1,10 +1,10 @@
-﻿using ContosoUniversity.Models;
+﻿using ContosoUniversity.ViewModels;
 using System;
 using System.Linq;
 
-namespace ContosoUniversity.Data
+namespace Infrastructure
 {
-    public static class DbInitializer
+    public static class SchoolContextInitializer
     {
         public static void Initialize(SchoolContext context)
         {

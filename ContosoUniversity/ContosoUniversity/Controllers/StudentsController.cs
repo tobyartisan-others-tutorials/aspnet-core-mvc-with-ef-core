@@ -1,32 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ContosoUniversity.Data;
-using ContosoUniversity.Models;
+using ContosoUniversity.ViewModels;
 using Microsoft.Extensions.Logging;
+using ApplicationCore.StudentNs.Domain.Services;
+using AutoMapper;
+using Entites = ApplicationCore.StudentNs.Domain.Entities;
 
 namespace ContosoUniversity.Controllers
 {
     public class StudentsController : Controller
     {
-        private readonly SchoolContext _context;
-        private readonly ILogger<StudentsController> _logger;
+        private readonly ICreateStudentService _createStudentService;
+        private readonly IDeleteStudentService _deleteStudentService;
+        private readonly IGetStudentsService _getStudentsService;
+        private readonly IUpdateStudentService _updateStudentService;
 
-        public StudentsController(SchoolContext context, ILogger<StudentsController> logger)
+        private readonly ILogger<StudentsController> _logger;
+        private readonly IMapper _mapper;
+
+        public StudentsController(ICreateStudentService createStudentService, 
+            ILogger<StudentsController> logger,
+            IMapper mapper)
         {
-            _context = context;
+            _createStudentService = createStudentService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         // GET: Students
         public async Task<IActionResult> Index()
         {
             _logger.LogInformation("Loading students for index view.");
-            return View(await _context.Students.ToListAsync());
+            return View(await _getStudentsService.GetAllAsync());
         }
 
         // GET: Students/Details/5
@@ -37,8 +44,8 @@ namespace ContosoUniversity.Controllers
                 return NotFound();
             }
 
-            var student = await _context.Students
-                .FirstOrDefaultAsync(m => m.ID == id);
+            var student = (await _getStudentsService.GetAllAsync())
+                .FirstOrDefault(m => m.ID == id);
             if (student == null)
             {
                 return NotFound();
@@ -62,8 +69,9 @@ namespace ContosoUniversity.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(student);
-                await _context.SaveChangesAsync();
+                // TODO It might be more appropriate to map the ViewModel to a Model instead of an Entity, since an Entity might not have all of its properties as public.
+                var studentEntity = _mapper.Map<Entites.Student>(student);
+                _createStudentService.Create(studentEntity);
                 return RedirectToAction(nameof(Index));
             }
             return View(student);
@@ -77,12 +85,12 @@ namespace ContosoUniversity.Controllers
                 return NotFound();
             }
 
-            var student = await _context.Students.FindAsync(id);
-            if (student == null)
+            var studentEntity = await _getStudentsService.GetByIdAsync(id.Value);
+            if (studentEntity == null)
             {
                 return NotFound();
             }
-            return View(student);
+            return View(_mapper.Map<Student>(studentEntity));
         }
 
         // POST: Students/Edit/5
@@ -101,8 +109,8 @@ namespace ContosoUniversity.Controllers
             {
                 try
                 {
-                    _context.Update(student);
-                    await _context.SaveChangesAsync();
+                    var studentEntity = _mapper.Map<Entites.Student>(student);
+                    await _updateStudentService.Update(studentEntity);
                 }
                 catch (DbUpdateConcurrencyException)
                 {

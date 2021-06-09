@@ -1,9 +1,13 @@
-﻿using System;
+﻿using ApplicationCore.Infrastructure.Interfaces.Repositories;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ContosoUniversity.Models
+namespace ApplicationCore.StudentNs.Domain.Entities
 {
-    public class Student
+    public class Student : EntityBase
     {
         public int ID { get; set; }
         public string LastName { get; set; }
